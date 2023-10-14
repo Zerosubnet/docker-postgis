@@ -54,6 +54,7 @@ endif
 # via environment variables.
 REPO_NAME  ?= postgis
 IMAGE_NAME ?= postgis
+ARCH       ?= amd64
 
 DOCKER=docker
 DOCKERHUB_DESC_IMG=peterevans/dockerhub-description:latest
@@ -76,12 +77,12 @@ update:
 define build-version
 build-$1:
 ifeq ($(do_default),true)
-	$(DOCKER) build --pull -t $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1) $1
+	$(DOCKER) build --platform linux/amd64 --pull -t $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1) $1
 	$(DOCKER) images          $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1)
 endif
 ifeq ($(do_alpine),true)
 ifneq ("$(wildcard $1/alpine)","")
-	$(DOCKER) build --pull -t $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1)-alpine $1/alpine
+	$(DOCKER) build --platform linux/amd64 --pull -t $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1)-alpine $1/alpine
 	$(DOCKER) images          $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1)-alpine
 endif
 endif

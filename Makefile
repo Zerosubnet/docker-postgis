@@ -80,16 +80,14 @@ update:
 define build-version
 build-$1:
 ifeq ($(do_default),true)
-	$(foreach arch,$(echo $(ARCH)|tr ',' ' '), \
-		$(DOCKER) buildx build --platform $(arch) --load --pull -t $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1) $1; \
-	)
+	$(DOCKER) buildx build --platform $(ARCH) --pull -t $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1) $1
+	$(DOCKER) buildx build --platform linux/amd64 --load --pull -t $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1) $1
 	$(DOCKER) images          $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1)
 endif
 ifeq ($(do_alpine),true)
 ifneq ("$(wildcard $1/alpine)","")
-	$(foreach arch,$(echo $(ARCH)|tr ',' ' '), \
-		$(DOCKER) buildx build --platform $(arch) --load --pull -t $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1)-alpine $1/alpine; \
-	)
+	$(DOCKER) buildx build --platform $(ARCH) --pull -t $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1)-alpine $1/alpine
+	$(DOCKER) buildx build --platform linux/amd64 --load --pull -t $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1)-alpine $1/alpine
 	$(DOCKER) images          $(REPO_NAME)/$(IMAGE_NAME):$(shell echo $1)-alpine
 endif
 endif
@@ -133,18 +131,18 @@ push: $(foreach version,$(VERSIONS),push-$(version)) $(PUSH_DEP)
 define push-version
 push-$1: test-$1
 ifeq ($(do_default),true)
-	$(DOCKER) image push $(REPO_NAME)/$(IMAGE_NAME):$(version)
+	$(DOCKER) buildx build --platform $(ARCH) --push -t $(REPO_NAME)/$(IMAGE_NAME):$(version) $1
 endif
 ifeq ($(do_alpine),true)
 ifneq ("$(wildcard $1/alpine)","")
-	$(DOCKER) image push $(REPO_NAME)/$(IMAGE_NAME):$(version)-alpine
+	$(DOCKER) buildx build --platform $(ARCH) --push -t $(REPO_NAME)/$(IMAGE_NAME):$(version)-alpine $1/alpine
 endif
 endif
 endef
 $(foreach version,$(VERSIONS),$(eval $(call push-version,$(version))))
 
 push-latest: tag-latest $(PUSH_LATEST_DEP)
-	$(DOCKER) image push $(REPO_NAME)/$(IMAGE_NAME):latest
+	$(DOCKER) buildx build --platform $(ARCH) --push -t $(REPO_NAME)/$(IMAGE_NAME):latest $1
 	@$(DOCKER) run -v "$(PWD)":/workspace \
                       -e DOCKERHUB_USERNAME='$(DOCKERHUB_USERNAME)' \
                       -e DOCKERHUB_PASSWORD='$(DOCKERHUB_ACCESS_TOKEN)' \

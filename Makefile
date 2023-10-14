@@ -54,6 +54,9 @@ endif
 # via environment variables.
 REPO_NAME  ?= postgis
 IMAGE_NAME ?= postgis
+
+# Define the architecture(s) to build for.  This can be overriden via an
+# environment variable.
 ARCH       ?= linux/amd64,linux/arm64
 
 DOCKER=docker

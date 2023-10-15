@@ -70,6 +70,7 @@ jobs:
     - name: Push docker image to dockerhub
       if: ${{  (github.ref == 'refs/heads/zs') && (github.event_name != 'pull_request')  }}
       env:
-        REPO_NAME: ${{ github.repository }}
+        REPO_NAME: ${{ env.REGISTRY }}
+        IMAGE_NAME: zerosubnet/postgis
       run: make push
 
